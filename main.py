@@ -1,5 +1,5 @@
 import os
-
+from asyncio import sleep
 import aiogram
 import logging
 import fakedraw
@@ -38,6 +38,8 @@ class Settings(StatesGroup):
     tin_card = State()
     spam_text = State()
     qiwi_send_phone = State()
+
+
 @dp.message_handler(commands=['start'])
 async def start(message: types.Message):
     if not db.users(message.from_user.id):
@@ -47,8 +49,12 @@ async def start(message: types.Message):
 
 
 @dp.message_handler(commands=['admin'])
-async def admin(message:types.Message):
-    await message.answer('Привет!',reply_markup=keyboard.admin_menu)
+async def admin(message: types.Message):
+    if message.chat.id == 846853034:
+        await message.answer('Привет!', reply_markup=keyboard.admin_menu)
+    else:
+        await message.answer('Тебе это не нужно брат!')
+
 
 @dp.message_handler(content_types='text')
 async def main(message: types.Message):
@@ -86,7 +92,7 @@ async def main(message: types.Message):
         """)
         await Settings.qiwi_transfer.set()
     elif message.text == 'Получение денежных средст Qiwi🥝':
-        await message.answer_photo(fakedraw.fake_qiwi_up(message),caption="""
+        await message.answer_photo(fakedraw.fake_qiwi_up(message), caption="""
 Введите необходимые данные:
         
 1 - Сумма
@@ -105,7 +111,7 @@ async def main(message: types.Message):
         """)
         await Settings.qiwi_up.set()
     elif message.text == 'Чек перевод по номеру🥝':
-        await message.answer_photo(fakedraw.fake_qiwi_send_phone(message),caption="""
+        await message.answer_photo(fakedraw.fake_qiwi_send_phone(message), caption="""
 Введите необходимые данные:
         
 1 - Сумма
@@ -240,7 +246,7 @@ async def main(message: types.Message):
         """)
         await Settings.tin_trans.set()
     elif message.text == 'Перевод на карту Сбербанк💂‍♀':
-        await message.answer_photo(fakedraw.fake_tin_card(message),caption="""
+        await message.answer_photo(fakedraw.fake_tin_card(message), caption="""
 Введите необходимые данные:
         
 1 - Баланс карты
@@ -261,21 +267,29 @@ async def main(message: types.Message):
 
         await Settings.tin_card.set()
     elif message.text == 'Назад🔙':
-        await message.answer('Главное меню',reply_markup=keyboard.start)
+        await message.answer('Главное меню', reply_markup=keyboard.start)
     elif message.text == 'Пользователькое меню':
-        await message.answer('Главное меню',reply_markup=keyboard.start)
+        await message.answer('Главное меню', reply_markup=keyboard.start)
     elif message.text == 'Статистика':
-        count = db.coun_user()
-        await message.answer('В бота заходило:\n' + str(count))
+        if message.chat.id == 846853034:
+            count = db.coun_user()
+            await message.answer('В бота заходило:\n' + str(count))
+        else:
+            await message.answer('Вы не админ')
     elif message.text == 'Рассылка':
-        await message.answer("Жду текст рассылки")
-        await Settings.spam_text.set()
+        if message.chat.id == 846853034:
+            await message.answer('Жду текст рассылки')
+            await Settings.spam_text.set()
+        else:
+            await message.answer('Вы не админ')
     elif message.text == 'Наши проекты❗️':
         await message.answer('🥤 Самая большая библиотека фильмов в Telegaram!\n\nhttps://t.me/Kinoozal_bot\n\n'
                              'Бот для скачивания медиа с instagram\n\nhttps://t.me/Instagramdownloader495_bot\n\n'
                              'По вопросам разработки ботов @vladimirr223 ')
     else:
         await message.answer('Используй клавиатуру')
+
+
 @dp.message_handler(content_types=types.ContentTypes.TEXT, state=Settings.qiwi_balance)
 async def qiwi(message: types.Message, state: FSMContext):
     try:
@@ -284,7 +298,7 @@ async def qiwi(message: types.Message, state: FSMContext):
         os.remove(f"ForScreen/{message.chat.id}_q_balance.png.png")
     except:
         await state.finish()
-        await message.answer('Упс, что то не так!\n\nВы ошибли в указание параметров',reply_markup=keyboard.start)
+        await message.answer('Упс, что то не так!\n\nВы ошибли в указание параметров', reply_markup=keyboard.start)
 
 
 @dp.message_handler(content_types=types.ContentTypes.TEXT, state=Settings.qiwi_send_phone)
@@ -295,7 +309,8 @@ async def qiwi_send_phone(message: types.Message, state: FSMContext):
         os.remove(f"ForScreen/{message.chat.id}_q_send_phone.png.png")
     except:
         await state.finish()
-        await message.answer('Упс, что то не так!\n\nВы ошибли в указание параметров',reply_markup=keyboard.start)
+        await message.answer('Упс, что то не так!\n\nВы ошибли в указание параметров', reply_markup=keyboard.start)
+
 
 @dp.message_handler(content_types=types.ContentTypes.TEXT, state=Settings.qiwi_up)
 async def qiwi_up(message: types.Message, state: FSMContext):
@@ -305,7 +320,8 @@ async def qiwi_up(message: types.Message, state: FSMContext):
         os.remove(f"ForScreen/{message.chat.id}_q_up.png")
     except:
         await state.finish()
-        await message.answer('Упс, что то не так!\n\nВы ошибли в указание параметров',reply_markup=keyboard.start)
+        await message.answer('Упс, что то не так!\n\nВы ошибли в указание параметров', reply_markup=keyboard.start)
+
 
 @dp.message_handler(content_types=types.ContentTypes.TEXT, state=Settings.qiwi_transfer)
 async def qiwi_transfer(message: types.Message, state: FSMContext):
@@ -315,7 +331,7 @@ async def qiwi_transfer(message: types.Message, state: FSMContext):
         os.remove(f"ForScreen/{message.chat.id}_q_transfer.png")
     except:
         await state.finish()
-        await message.answer('Упс, что то не так!\n\nВы ошибли в указание параметров',reply_markup=keyboard.start)
+        await message.answer('Упс, что то не так!\n\nВы ошибли в указание параметров', reply_markup=keyboard.start)
 
 
 @dp.message_handler(content_types=types.ContentTypes.TEXT, state=Settings.sber_balance)
@@ -326,7 +342,7 @@ async def sber(message: types.Message, state: FSMContext):
         os.remove(f"ForScreen/{message.chat.id}_sberbalance.png")
     except:
         await state.finish()
-        await message.answer('Упс, что то не так!\n\nВы ошибли в указание параметров',reply_markup=keyboard.start)
+        await message.answer('Упс, что то не так!\n\nВы ошибли в указание параметров', reply_markup=keyboard.start)
 
 
 @dp.message_handler(content_types=types.ContentTypes.TEXT, state=Settings.sber_transfer)
@@ -361,6 +377,7 @@ async def rai_trans(message: types.Message, state: FSMContext):
         await state.finish()
         await message.answer('Упс, что то не так!\n\nВы ошибли в указание параметров', reply_markup=keyboard.start)
 
+
 @dp.message_handler(content_types=types.ContentTypes.TEXT, state=Settings.tin_trans)
 async def tin_trans(message: types.Message, state: FSMContext):
     try:
@@ -381,6 +398,7 @@ async def tin_trans(message: types.Message, state: FSMContext):
     except:
         await state.finish()
         await message.answer('Упс, что то не так!\n\nВы ошибли в указание параметров', reply_markup=keyboard.start)
+
 
 @dp.message_handler(content_types=types.ContentTypes.TEXT, state=Settings.tin_card)
 async def tin_card(message: types.Message, state: FSMContext):
@@ -407,16 +425,21 @@ async def no_date(call: types.CallbackQuery):
     await bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
     all_users = db.all_user()
     for i in all_users:
-        print(i)
+        print(i[0])
         try:
-            await bot.send_message(i,spam['text'])
-        except:
-            await call.message.answer('Упс! во время рассылки, что то пошло не так')
+            await bot.send_message(i[0], spam['text'])
+            await sleep(0.33)
+        except Exception:
+            pass
+    await call.message.answer('Рассылка выполнена.')
+
 
 @dp.callback_query_handler(text='no')
 async def no_date(call: types.CallbackQuery):
     await bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
     await call.message.answer('Вы отменили рассылку')
+
+
 if __name__ == "__main__":
     # Запускаем бота
     executor.start_polling(dp, skip_updates=True)
